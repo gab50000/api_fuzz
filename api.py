@@ -79,18 +79,3 @@ def delete_user(id: int):
         user_db.remove(id)
     except KeyError:
         return HTTPException(status_code=404, detail="User not found")
-
-
-# def custom_openapi():
-#     if app.openapi_schema:
-#         return app.openapi_schema
-#     openapi_schema = get_openapi(
-#         title="App",
-#         version="0.1.0",
-#         routes=app.routes,
-#     )
-#     app.openapi_schema = openapi_schema
-#     return app.openapi_schema
-
-
-# app.openapi = custom_openapi
