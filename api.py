@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.openapi.utils import get_openapi
+from fastapi.routing import APIRoute
 
 
 class User(BaseModel):
@@ -43,7 +44,7 @@ def get_users() -> list[User]:
     return user_db.get_users()
 
 
-@app.get("/user/{id}", operation_id="getUser")
+@app.get("/user/{id}")
 def get_user(id: int) -> User:
     try:
         return user_db.get_user(id)
@@ -58,11 +59,11 @@ def get_user(id: int) -> User:
             "200": {
                 "links": {
                     "deleteUserById": {
-                        "operationId": "deleteUser",
+                        "operationId": "delete_user",
                         "parameters": {"id": "$response.body#/id"},
                     },
                     "getUserById": {
-                        "operationId": "getUser",
+                        "operationId": "get_user",
                         "parameters": {"id": "$response.body#/id"},
                     },
                 }
@@ -75,9 +76,24 @@ def create_user(user: User) -> UserResponse:
     return UserResponse(id=id)
 
 
-@app.delete("/user/delete/{id}", operation_id="deleteUser")
+@app.delete("/user/delete/{id}")
 def delete_user(id: int):
     try:
         user_db.remove(id)
     except KeyError:
         raise HTTPException(status_code=404, detail="User not found")
+
+
+def _use_route_names_as_operation_ids(app: FastAPI) -> None:
+    """
+    Simplify operation IDs so that generated API clients have simpler function
+    names.
+
+    Should be called only after all routes have been added.
+    """
+    for route in app.routes:
+        if isinstance(route, APIRoute):
+            route.operation_id = route.name
+
+
+_use_route_names_as_operation_ids(app)
