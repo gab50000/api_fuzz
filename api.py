@@ -38,19 +38,21 @@ user_db = UserDb()
 app = FastAPI()
 
 
-@app.get("/user", response_model=list[User])
-def get_users():
+@app.get("/user")
+def get_users() -> list[User]:
     return user_db.get_users()
 
 
-@app.get("/user/{id}", response_model=list[User], operation_id="getUser")
-def get_user(id: int):
-    return user_db.get_users()
+@app.get("/user/{id}", operation_id="getUser")
+def get_user(id: int) -> User:
+    try:
+        return user_db.get_user(id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @app.post(
     "/user/create",
-    response_model=UserResponse,
     openapi_extra={
         "responses": {
             "200": {
@@ -68,7 +70,7 @@ def get_user(id: int):
         }
     },
 )
-def create_user(user: User):
+def create_user(user: User) -> UserResponse:
     id = user_db.add(user)
     return UserResponse(id=id)
 
@@ -78,4 +80,4 @@ def delete_user(id: int):
     try:
         user_db.remove(id)
     except KeyError:
-        return HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found")
