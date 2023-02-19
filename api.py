@@ -43,7 +43,7 @@ def get_users():
     return user_db.get_users()
 
 
-@app.get("/user/{id}", response_model=list[User])
+@app.get("/user/{id}", response_model=list[User], operation_id="getUser")
 def get_user(id: int):
     return user_db.get_users()
 
@@ -57,6 +57,10 @@ def get_user(id: int):
                 "links": {
                     "deleteUserById": {
                         "operationId": "deleteUser",
+                        "parameters": {"id": "$response.body#/id"},
+                    },
+                    "getUserById": {
+                        "operationId": "getUser",
                         "parameters": {"id": "$response.body#/id"},
                     },
                 }
